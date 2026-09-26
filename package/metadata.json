@@ -6,11 +6,16 @@
     "Description": "Adjust the vertical offset between monitors from System Settings so the cursor doesn't jump at screen edges (config page; the layout is applied by monitoralign-daemon)",
     "Description[ja]": "モニタ境界の縦オフセットを System Settings から調整し、カーソルが画面の境界で飛ばないようにする（設定ページ。配置の適用は monitoralign-daemon）",
     "Icon": "preferences-desktop-display",
-    "Authors": [{ "Name": "nagata1634" }],
+    "Authors": [
+      {
+        "Name": "nagata1634"
+      }
+    ],
     "Id": "monitoralign",
     "Version": "1.1",
     "License": "MIT",
-    "Website": "https://github.com/nagata1634/kwin-monitoralign"
+    "Website": "https://store.kde.org/p/2374311/",
+    "BugReportUrl": "https://github.com/nagata1634/kwin-monitoralign/issues"
   },
   "X-Plasma-API": "javascript",
   "X-Plasma-API-Minimum-Version": "6.0",

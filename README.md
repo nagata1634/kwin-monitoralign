@@ -2,6 +2,8 @@
 
 English | [日本語](README.ja.md)
 
+[KDE Store](https://store.kde.org/p/2374311/) · [GitHub](https://github.com/nagata1634/kwin-monitoralign)
+
 A KWin script + small helper daemon for KDE Plasma (Wayland) that lets you fix the **vertical
 misalignment between side-by-side monitors from System Settings**, so the cursor **doesn't jump**
 when it crosses from one screen to the next.

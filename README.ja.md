@@ -2,6 +2,8 @@
 
 [English](README.md) | 日本語
 
+[KDE Store](https://store.kde.org/p/2374311/) · [GitHub](https://github.com/nagata1634/kwin-monitoralign)
+
 KDE Plasma (Wayland) で、横に並べたモニタの**上下のズレ**を System Settings から調整し、
 モニタの境界をまたぐときに**カーソルが飛ばない**ようにする KWin スクリプト + 常駐ヘルパーです。
 
