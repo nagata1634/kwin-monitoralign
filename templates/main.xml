@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 初期テンプレート。monitoralign-daemon が接続中のモニタ名(y_DP_1 など)のエントリで上書きする。 -->
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0">
+  <kcfgfile name=""/>
+  <group name="">
+  </group>
+</kcfg>

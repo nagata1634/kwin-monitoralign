@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+# monitoralign-daemon が接続中のモニタから生成する（初期テンプレートは templates/）
+package/contents/config/main.xml
+package/contents/ui/config.ui
+*.kwinscript
