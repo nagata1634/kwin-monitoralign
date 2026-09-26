@@ -29,8 +29,15 @@ def log(msg):
     print(msg, flush=True)
 
 
-def key(name):
-    return "y_" + name.replace("-", "_")
+def key(o):
+    """設定キー。接続名ではなく「論理サイズ＋同サイズ内の順番」で同定する。
+    DisplayPort MST では接続名(DP-5/6 ↔ DP-7/8)が再接続で揺れるため、名前に紐づけると値が消える。
+    例: y_1969x1108_1(横置き1台目) / y_1108x1969_1(縦置き1台目)"""
+    return f"y_{o['w']}x{o['h']}_{o['nth']}"
+
+
+def legacy_key(o):
+    return "y_" + o["name"].replace("-", "_")
 
 
 def outputs():
@@ -50,16 +57,34 @@ def outputs():
             "priority": o["priority"],
         })
     outs.sort(key=lambda o: (not o["name"].startswith(INTERNAL), o["name"]))
+    seen = {}
     for o in outs:  # KDE の設定上の Primary(priority 最小)が基準。値は常に 0
         o["primary"] = o["priority"] == min(x["priority"] for x in outs)
+        size = (o["w"], o["h"]); seen[size] = seen.get(size, 0) + 1
+        o["nth"] = seen[size]  # 同じ論理サイズのモニタが複数あるときの順番(名前順)
     return outs
 
 
+def read_key(k, default=None):
+    r = subprocess.run(["kreadconfig6", "--file", "kwinrc", "--group", GROUP, "--key", k],
+                       capture_output=True, text=True).stdout.strip()
+    return int(r) if r.lstrip("-").isdigit() else default
+
+
 def offsets(outs):
-    """Primary に対する相対値(px、正=下)。Primary 自身は 0。"""
-    return [0 if o["primary"] else int(subprocess.run(
-        ["kreadconfig6", "--file", "kwinrc", "--group", GROUP, "--key", key(o["name"]), "--default", "0"],
-        capture_output=True, text=True).stdout.strip() or 0) for o in outs]
+    """Primary に対する相対値(px、正=下)。Primary 自身は 0。
+    旧形式 y_<接続名> の値があれば新キーへ1回だけ引き継ぐ。"""
+    ys = []
+    for o in outs:
+        if o["primary"]:
+            ys.append(0); continue
+        v = read_key(key(o))
+        if v is None:
+            v = read_key(legacy_key(o), 0)
+            subprocess.run(["kwriteconfig6", "--file", "kwinrc", "--group", GROUP, "--key", key(o), "--", str(v)])
+            log(f"設定キー移行: {legacy_key(o)} -> {key(o)} = {v}")
+        ys.append(v)
+    return ys
 
 
 def layout(outs, ys):
@@ -92,7 +117,7 @@ HELP = (
 
 def gen_ui(outs):
     """いま有効なモニタだけを接続名で並べた設定ページ(kcfg + .ui)を生成する。"""
-    ent = "".join(f'    <entry name="{key(o["name"])}" type="Int"><label>{o["name"]}</label>'
+    ent = "".join(f'    <entry name="{key(o)}" type="Int"><label>{o["name"]}</label>'
                   f'<default>0</default></entry>\n' for o in outs)
     xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
            '<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0">\n  <kcfgfile name=""/>\n'
@@ -103,7 +128,7 @@ def gen_ui(outs):
     C = ' alignment="Qt::AlignHCenter"'
     for i, o in enumerate(outs):
         kind = "縦置き" if o["h"] > o["w"] else "横置き"
-        k, sl, fine = key(o["name"]), f"slider_{i}", f"fine_{i}"  # fine: ±1 用の隠しスピンボックス
+        k, sl, fine = key(o), f"slider_{i}", f"fine_{i}"  # fine: ±1 用の隠しスピンボックス
         title = f'{i+1}. {o["name"]}　{kind} {o["px"][0]}×{o["px"][1]}'
 
         def btn(name, text):
@@ -185,7 +210,7 @@ def apply(quiet=False):
 def status():
     outs = outputs()
     for o, y in zip(outs, offsets(outs)):
-        log(f"{o['name']:6} pos=({o['x']},{o['y']}) size={o['w']}x{o['h']}  設定 {key(o['name'])}={y}")
+        log(f"{o['name']:6} pos=({o['x']},{o['y']}) size={o['w']}x{o['h']}  設定 {key(o)}={y}{'  (Primary)' if o['primary'] else ''}")
 
 
 def main():
