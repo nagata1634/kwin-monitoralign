@@ -2,12 +2,15 @@
   "KPackageStructure": "KWin/Script",
   "KPlugin": {
     "Name": "Monitor Align",
-    "Description": "モニタ境界の縦オフセットを System Settings から ±10 で調整する(実体は monitoralign-daemon)",
+    "Name[ja]": "Monitor Align（モニタ位置合わせ）",
+    "Description": "Adjust the vertical offset between monitors from System Settings so the cursor doesn't jump at screen edges (config page; the layout is applied by monitoralign-daemon)",
+    "Description[ja]": "モニタ境界の縦オフセットを System Settings から調整し、カーソルが画面の境界で飛ばないようにする（設定ページ。配置の適用は monitoralign-daemon）",
     "Icon": "preferences-desktop-display",
-    "Authors": [{ "Name": "yuya" }],
+    "Authors": [{ "Name": "nagata1634" }],
     "Id": "monitoralign",
-    "Version": "1.0",
-    "License": "MIT"
+    "Version": "1.1",
+    "License": "MIT",
+    "Website": "https://github.com/nagata1634/kwin-monitoralign"
   },
   "X-Plasma-API": "javascript",
   "X-Plasma-API-Minimum-Version": "6.0",

@@ -24,6 +24,46 @@ PKG = os.path.expanduser("~/.local/share/kwin/scripts/monitoralign/contents")  #
 INTERNAL = ("eDP", "LVDS", "DSI")
 POLL_MS = 10_000  # モニタの抜き差し検知(kscreen-doctor -j の軽い読み取り)
 
+# ---- 文言(設定ページとログ)。LANG/LC_ALL/LANGUAGE が ja* なら日本語、それ以外は英語 ----
+T = {
+    "en": {
+        "help": ("Set how many px each monitor sits below the Primary (the one chosen in KDE's Display "
+                 "Configuration; negative = above) with the slider or the number field, then press Apply. "
+                 "Move the cursor sideways across the boundary and look for the value where it no longer jumps. "
+                 "If the cursor arrives higher than expected on the neighbour, move the source monitor down "
+                 "(increase); if lower, move it up.\n\n"
+                 "Monitors are laid out in one row, left to right: internal panel first, then external ones "
+                 "by connector name, with no horizontal gap (X is automatic). Values that would leave no "
+                 "vertical overlap with the neighbour are clamped automatically."),
+        "landscape": "landscape", "portrait": "portrait",
+        "primary": "reference (Primary) 0 px", "prefix": "{p} + ", "suffix": " px down",
+        "nochange": "no change", "applied": "applied", "verified": "verified OK",
+        "failed": "apply failed ({err}); read back={got} expected={plan}. Reverting to previous layout",
+        "revert": "revert", "ok": "OK", "fail": "FAILED {err}",
+        "clamp": "clamp: {name} y={y} -> {c} (must overlap neighbour: {lo}..{hi})",
+        "gen": "settings page generated: {rel} ({names})", "migrate": "config key migrated: {old} -> {new} = {v}",
+        "cfg": "setting", "primary_tag": "  (Primary)",
+    },
+    "ja": {
+        "help": ("Primary（KDE の「ディスプレイの設定」で決めたもの）を基準に、他のモニタを Primary より何 px 下に"
+                 "置くか（負 = 上へ）をスライダーか数値欄で決め、[適用] で反映します。境界をまたいでカーソルを"
+                 "横に動かし、飛ばなくなる所を探してください。隣へ移ったときカーソルが実際より上に出る → "
+                 "出発側を下へ（値を増やす）、下に出る → 上へ。\n\n"
+                 "並びは左から「内蔵パネル → 外部（接続名順）」で横一列・隙間なし。横方向は自動なので"
+                 "間隔が空くことはなく、隣と縦に重ならない値は自動で補正されます。"),
+        "landscape": "横置き", "portrait": "縦置き",
+        "primary": "基準（Primary） 0 px", "prefix": "{p} より ", "suffix": " px 下へ",
+        "nochange": "変更なし", "applied": "適用", "verified": "照合OK",
+        "failed": "適用失敗 ({err}); 読み戻し={got} 期待={plan}。直前の配置へ復帰します",
+        "revert": "復帰", "ok": "OK", "fail": "失敗 {err}",
+        "clamp": "clamp: {name} y={y} -> {c} (隣と重なる範囲 {lo}..{hi})",
+        "gen": "設定ページ生成: {rel} ({names})", "migrate": "設定キー移行: {old} -> {new} = {v}",
+        "cfg": "設定", "primary_tag": "  (Primary)",
+    },
+}
+_lang = next((os.environ.get(v, "") for v in ("LC_ALL", "LC_MESSAGES", "LANG", "LANGUAGE") if os.environ.get(v)), "")
+L = T["ja" if _lang.startswith("ja") else "en"]
+
 
 def log(msg):
     print(msg, flush=True)
@@ -82,7 +122,7 @@ def offsets(outs):
         if v is None:
             v = read_key(legacy_key(o), 0)
             subprocess.run(["kwriteconfig6", "--file", "kwinrc", "--group", GROUP, "--key", key(o), "--", str(v)])
-            log(f"設定キー移行: {legacy_key(o)} -> {key(o)} = {v}")
+            log(L["migrate"].format(old=legacy_key(o), new=key(o), v=v))
         ys.append(v)
     return ys
 
@@ -95,7 +135,7 @@ def layout(outs, ys):
         lo, hi = y[i - 1] - outs[i]["h"] + 1, y[i - 1] + outs[i - 1]["h"] - 1
         c = min(max(y[i], lo), hi)
         if c != y[i]:
-            log(f"clamp: {outs[i]['name']} y={y[i]} -> {c} (隣と重なる範囲 {lo}..{hi})")
+            log(L["clamp"].format(name=outs[i]["name"], y=y[i], c=c, lo=lo, hi=hi))
             y[i] = c
     m = min(y) if y else 0
     x, plan = 0, []
@@ -103,16 +143,6 @@ def layout(outs, ys):
         plan.append((o["name"], x, yy - m))
         x += o["w"]
     return plan
-
-
-HELP = (
-    "Primary（KDE の「ディスプレイの設定」で決めたもの）を基準に、他のモニタを Primary より何 px 下に"
-    "置くか（負 = 上へ）をスライダーか数値欄で決め、[適用] で反映します。"
-    "境界をまたいでカーソルを横に動かし、飛ばなくなる所を探してください。"
-    "隣へ移ったときカーソルが実際より上に出る → 出発側を下へ（値を増やす）、下に出る → 上へ。\n\n"
-    "並びは左から下記の順（内蔵パネル → 外部の接続名順）で横一列・隙間なし。横方向は自動なので"
-    "間隔が空くことはなく、隣と縦に重ならない値は自動で補正されます。"
-)
 
 
 def gen_ui(outs):
@@ -127,7 +157,7 @@ def gen_ui(outs):
     prim = next((o["name"] for o in outs if o["primary"]), "?")
     C = ' alignment="Qt::AlignHCenter"'
     for i, o in enumerate(outs):
-        kind = "縦置き" if o["h"] > o["w"] else "横置き"
+        kind = L["portrait"] if o["h"] > o["w"] else L["landscape"]
         k, sl, fine = key(o), f"slider_{i}", f"fine_{i}"  # fine: ±1 用の隠しスピンボックス
         title = f'{i+1}. {o["name"]}　{kind} {o["px"][0]}×{o["px"][1]}'
 
@@ -136,7 +166,7 @@ def gen_ui(outs):
                     '<property name="autoRepeat"><bool>true</bool></property></widget></item>\n')
         if o["primary"]:  # 1行: 名前 ＋ 基準
             rows += (f'   <item{C}><widget class="QLabel" name="l{i}"><property name="text">'
-                     f'<string>{title}　—　基準（Primary） 0 px</string></property></widget></item>\n')
+                     f'<string>{title}　—　{L["primary"]}</string></property></widget></item>\n')
             continue
         rows += (  # 3行: 名前 / スライダー / ステッパーと数値欄。すべて中央寄せ
             f'   <item{C}><widget class="QLabel" name="l{i}"><property name="text"><string>{title}</string></property></widget></item>\n'
@@ -147,7 +177,7 @@ def gen_ui(outs):
             '<property name="tickPosition"><enum>QSlider::TicksBelow</enum></property><property name="tickInterval"><number>100</number></property></widget></item>\n'
             f'   <item{C}><layout class="QHBoxLayout" name="h{i}">\n'
             + btn(f"m10_{i}", "−10") + btn(f"m1_{i}", "−1") +
-            f'      <item><widget class="QSpinBox" name="kcfg_{k}"><property name="prefix"><string>{prim} より </string></property><property name="suffix"><string> px 下へ</string></property>'
+            f'      <item><widget class="QSpinBox" name="kcfg_{k}"><property name="prefix"><string>{L["prefix"].format(p=prim)}</string></property><property name="suffix"><string>{L["suffix"]}</string></property>'
             f'<property name="minimum"><number>-{lim}</number></property><property name="maximum"><number>{lim}</number></property>'
             '<property name="singleStep"><number>10</number></property></widget></item>\n'
             + btn(f"p1_{i}", "+1") + btn(f"p10_{i}", "+10") +
@@ -167,7 +197,7 @@ def gen_ui(outs):
     ui = ('<?xml version="1.0" encoding="UTF-8"?>\n<ui version="4.0">\n <class>MonitorAlignConfigForm</class>\n'
           ' <widget class="QWidget" name="MonitorAlignConfigForm">\n  <layout class="QVBoxLayout" name="v">\n'
           '   <item><widget class="QLabel" name="helpLabel"><property name="wordWrap"><bool>true</bool></property>'
-          f'<property name="text"><string>{HELP}</string></property></widget></item>\n'
+          f'<property name="text"><string>{L["help"]}</string></property></widget></item>\n'
           f'{rows}'
           '   <item><spacer name="s"><property name="orientation"><enum>Qt::Vertical</enum></property></spacer></item>\n'
           f'  </layout>\n </widget>\n <resources/>\n <connections>\n{conns} </connections>\n</ui>\n')
@@ -176,7 +206,7 @@ def gen_ui(outs):
         if not os.path.exists(p) or open(p).read() != body:
             os.makedirs(os.path.dirname(p), exist_ok=True)
             open(p, "w").write(body)
-            log(f"設定ページ生成: {rel} ({', '.join(o['name'] for o in outs)})")
+            log(L["gen"].format(rel=rel, names=", ".join(o["name"] for o in outs)))
 
 
 def kscreen(args):
@@ -193,24 +223,24 @@ def apply(quiet=False):
     plan = layout(outs, offsets(outs))
     cur = [(o["name"], o["x"], o["y"]) for o in outs]
     if plan == cur:
-        quiet or log("変更なし: " + " ".join(f"{n}({x},{y})" for n, x, y in plan))
+        quiet or log(L["nochange"] + ": " + " ".join(f"{n}({x},{y})" for n, x, y in plan))
         return
     cmd = [f"output.{n}.position.{x},{y}" for n, x, y in plan]
     ok, out = kscreen(cmd)
     time.sleep(0.5)
     got = [(o["name"], o["x"], o["y"]) for o in outputs()]
     if ok and got == plan:
-        log("適用: " + " ".join(cmd) + " / 照合OK")
+        log(L["applied"] + ": " + " ".join(cmd) + " / " + L["verified"])
         return
-    log(f"適用失敗 ({out!r}); 読み戻し={got} 期待={plan}。直前の配置へ復帰します")
+    log(L["failed"].format(err=repr(out), got=got, plan=plan))
     ok, out = kscreen([f"output.{n}.position.{x},{y}" for n, x, y in cur])
-    log("復帰: " + ("OK" if ok else f"失敗 {out!r}"))
+    log(L["revert"] + ": " + (L["ok"] if ok else L["fail"].format(err=repr(out))))
 
 
 def status():
     outs = outputs()
     for o, y in zip(outs, offsets(outs)):
-        log(f"{o['name']:6} pos=({o['x']},{o['y']}) size={o['w']}x{o['h']}  設定 {key(o)}={y}{'  (Primary)' if o['primary'] else ''}")
+        log(f"{o['name']:6} pos=({o['x']},{o['y']}) size={o['w']}x{o['h']}  {L['cfg']} {key(o)}={y}{L['primary_tag'] if o['primary'] else ''}")
 
 
 def main():

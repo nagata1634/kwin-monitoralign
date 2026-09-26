@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 初期テンプレート。monitoralign-daemon が起動すると、接続中のモニタに合わせた内容で上書きされる。 -->
+<!-- Initial template. monitoralign-daemon overwrites this with one row per connected monitor. -->
 <ui version="4.0">
  <class>MonitorAlignConfigForm</class>
  <widget class="QWidget" name="MonitorAlignConfigForm">
   <layout class="QVBoxLayout" name="v">
-   <item><widget class="QLabel" name="helpLabel"><property name="wordWrap"><bool>true</bool></property><property name="text"><string>monitoralign-daemon がまだ動いていません。
+   <item><widget class="QLabel" name="helpLabel"><property name="wordWrap"><bool>true</bool></property><property name="text"><string>monitoralign-daemon is not running yet. Start it with
 
   systemctl --user enable --now monitoralign.service
 
-を実行してから、このページを開き直してください。接続中のモニタごとの調整欄がここに表示されます。</string></property></widget></item>
+then reopen this page: one adjustment row per connected monitor will appear here.
+
+monitoralign-daemon がまだ動いていません。上のコマンドで起動してからこのページを開き直してください。接続中のモニタごとの調整欄がここに表示されます。</string></property></widget></item>
    <item><spacer name="s"><property name="orientation"><enum>Qt::Vertical</enum></property></spacer></item>
   </layout>
  </widget>
