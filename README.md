@@ -55,6 +55,19 @@ Coordinates come exclusively from `kscreen-doctor -j` logical values (`pos`, `ro
 
 ## Install
 
+### From the KDE Store (System Settings)
+
+System Settings › Window Management › KWin Scripts › **Get New Scripts…** → search "Monitor Align" → Install.
+The package carries the helper daemon; enable it once from a terminal:
+
+```sh
+~/.local/share/kwin/scripts/monitoralign/contents/install-daemon.sh
+```
+
+(The gear page shows this same command until the daemon runs.)
+
+### From Git
+
 ```sh
 git clone https://github.com/nagata1634/kwin-monitoralign.git
 cd kwin-monitoralign

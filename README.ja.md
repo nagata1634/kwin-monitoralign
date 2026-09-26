@@ -51,6 +51,19 @@ KWin スクリプトには出力を動かす API が無く、汎用 KCM（設定
 
 ## インストール
 
+### KDE Store から（System Settings）
+
+System Settings › ウィンドウの管理 › KWin スクリプト › **新しいウィンドウマネージャスクリプトをダウンロード** → 「Monitor Align」を検索 → インストール。
+パッケージにはヘルパーデーモンも同梱しているので、端末で 1 回だけ有効化します:
+
+```sh
+~/.local/share/kwin/scripts/monitoralign/contents/install-daemon.sh
+```
+
+（歯車のページにも、デーモンが動くまで同じコマンドが表示されます。）
+
+### Git から
+
 ```sh
 git clone https://github.com/nagata1634/kwin-monitoralign.git
 cd kwin-monitoralign

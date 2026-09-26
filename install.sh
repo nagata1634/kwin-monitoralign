@@ -46,15 +46,15 @@ mkdir -p "$(dirname "$BIN")" "$(dirname "$UNIT")" "$(dirname "$PKG_DIR")"
 if [ "$LINK" = 1 ]; then
   [ -d "$PKG_DIR" ] && [ ! -L "$PKG_DIR" ] && kpackagetool6 -t KWin/Script -r "$PKG_ID" >/dev/null 2>&1 || true
   ln -sfn "$HERE/package" "$PKG_DIR"
-  ln -sf "$HERE/bin/monitoralign-daemon" "$BIN"
-  ln -sf "$HERE/systemd/monitoralign.service" "$UNIT"
+  ln -sf "$HERE/package/contents/bin/monitoralign-daemon" "$BIN"
+  ln -sf "$HERE/package/contents/systemd/monitoralign.service" "$UNIT"
   ok "symlinked: $PKG_DIR, $BIN, $UNIT"
   seed_templates
 else
   if [ -L "$PKG_DIR" ]; then rm -f "$PKG_DIR"; fi
   if [ -d "$PKG_DIR" ]; then kpackagetool6 -t KWin/Script -u "$HERE/package" >/dev/null; else kpackagetool6 -t KWin/Script -i "$HERE/package" >/dev/null; fi
-  install -m 0755 "$HERE/bin/monitoralign-daemon" "$BIN"
-  install -m 0644 "$HERE/systemd/monitoralign.service" "$UNIT"
+  install -m 0755 "$HERE/package/contents/bin/monitoralign-daemon" "$BIN"
+  install -m 0644 "$HERE/package/contents/systemd/monitoralign.service" "$UNIT"
   seed_templates
   ok "installed: $PKG_DIR, $BIN, $UNIT"
 fi

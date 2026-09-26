@@ -4,13 +4,14 @@
  <class>MonitorAlignConfigForm</class>
  <widget class="QWidget" name="MonitorAlignConfigForm">
   <layout class="QVBoxLayout" name="v">
-   <item><widget class="QLabel" name="helpLabel"><property name="wordWrap"><bool>true</bool></property><property name="text"><string>monitoralign-daemon is not running yet. Start it with
+   <item><widget class="QLabel" name="helpLabel"><property name="wordWrap"><bool>true</bool></property><property name="text"><string>The helper daemon (monitoralign-daemon) is not running yet. Open a terminal and run:
 
-  systemctl --user enable --now monitoralign.service
+  ~/.local/share/kwin/scripts/monitoralign/contents/install-daemon.sh
 
 then reopen this page: one adjustment row per connected monitor will appear here.
+(Requires Python 3 + PySide6, e.g. Fedora: python3-pyside6)
 
-monitoralign-daemon がまだ動いていません。上のコマンドで起動してからこのページを開き直してください。接続中のモニタごとの調整欄がここに表示されます。</string></property></widget></item>
+ヘルパー（monitoralign-daemon）がまだ動いていません。端末で上のコマンドを実行してから、このページを開き直してください。接続中のモニタごとの調整欄がここに表示されます。（Python 3 + PySide6 が必要。Fedora: python3-pyside6）</string></property></widget></item>
    <item><spacer name="s"><property name="orientation"><enum>Qt::Vertical</enum></property></spacer></item>
   </layout>
  </widget>
